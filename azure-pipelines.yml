@@ -1,0 +1,65 @@
+trigger:
+  - master
+
+jobs:
+  - job: Windows
+    dependsOn: macOS
+    pool:
+      vmImage: 'vs2017-win2016'
+    condition: false
+    steps:
+      - powershell: Install-Module UnitySetup -Scope CurrentUser -Force
+      - powershell: Install-UnitySetupInstance -Installers (Find-UnitySetupInstaller -Version 2017.4.33f1 -Components Windows) -Destination "$Env:USERPROFILE\Unity"
+      - script: '"%USERPROFILE%\Unity\Editor\Unity.exe" -projectpath "%cd%" -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit'
+      - script: type log.txt
+        condition: always()
+      - script: '"%USERPROFILE%\Unity\Editor\Unity.exe" -projectpath "%cd%" -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -runTests -testResults testResults.xml -testPlatform StandaloneWindows64'
+      - script: type log.txt
+        condition: always()
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'NUnit'
+          testResultsFiles: 'testResults.xml'
+          mergeTestResults: true
+          failTaskOnFailedTests: true
+          testRunTitle: 'Windows Test'
+      - script: '"%USERPROFILE%\Unity\Editor\Unity.exe" -projectpath "%cd%" -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -exportPackage Assets StandaloneWindowTitleChanger.unitypackage'
+      - script: type log.txt
+        condition: always()
+      - script: '"%USERPROFILE%\Unity\Editor\Unity.exe" -projectpath "%cd%" -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -returnlicense'
+        condition: always()
+      - script: type log.txt
+        condition: always()
+      - publish: StandaloneWindowTitleChanger.unitypackage
+        artifact: UnityPackage
+
+  - job: macOS
+    pool:
+      vmImage: 'macOS-10.14'
+    dependsOn: macOSNative
+    condition: false
+    steps:
+      - script: mkdir ~/.unitysetup
+      - powershell: Install-Module UnitySetup -Scope CurrentUser -Force
+      - powershell: Install-UnitySetupInstance -Installers (Find-UnitySetupInstaller -Version 2017.4.33f1 -Components Mac) -Destination "$Env:HOME/Unity"
+      - script: $HOME/Unity/Unity.app/Contents/MacOS/Unity -projectpath $PWD -logfile -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit
+      - script: $HOME/Unity/Unity.app/Contents/MacOS/Unity -projectpath $PWD -logfile -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -runTests -testResults testResults.xml -testPlatform StandaloneOSX
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'NUnit'
+          testResultsFiles: 'testResults.xml'
+          mergeTestResults: true
+          failTaskOnFailedTests: true
+          testRunTitle: 'macOS Test'
+      - script: $HOME/Unity/Unity.app/Contents/MacOS/Unity -projectpath $PWD -logfile -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -exportPackage Assets StandaloneWindowTitleChanger.MacBundleUpdated.unitypackage
+      - script: $HOME/Unity/Unity.app/Contents/MacOS/Unity -projectpath $PWD -logfile -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -returnlicense
+        condition: always()
+
+  - job: macOSNative
+    pool:
+      vmImage: 'macOS-10.14'
+    steps:
+      - script: sudo xcode-select --switch /Applications/Xcode_9.4.1.app
+      - script: cd Assets/StandaloneWindowTitleChanger && make -f Makefile.macOS clean all
+      - publish: Assets
+        artifact: macOSNativeBundle

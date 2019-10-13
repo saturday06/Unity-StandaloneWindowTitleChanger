@@ -1,0 +1,8 @@
+{
+    "name": "StandaloneWindowTitleChanger.Tests",
+    "references": [
+        "StandaloneWindowTitleChanger"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

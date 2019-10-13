@@ -1,0 +1,10 @@
+/*.csproj
+/*.sln
+/.idea/
+/.vscode/
+/Assets/InitTestScene*.unity
+/Assets/InitTestScene*.unity.meta
+/Library/
+/Logs/
+/Temp/
+/obj/
