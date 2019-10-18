@@ -6,7 +6,6 @@ jobs:
     dependsOn: macOS
     pool:
       vmImage: 'vs2017-win2016'
-    condition: false
     steps:
       - powershell: Install-Module UnitySetup -Scope CurrentUser -Force
       - powershell: Install-UnitySetupInstance -Installers (Find-UnitySetupInstaller -Version 2017.4.33f1 -Components Windows) -Destination "$Env:USERPROFILE\Unity"
@@ -37,7 +36,6 @@ jobs:
     pool:
       vmImage: 'macOS-10.14'
     dependsOn: macOSNative
-    condition: false
     steps:
       - script: mkdir ~/.unitysetup
       - powershell: Install-Module UnitySetup -Scope CurrentUser -Force
