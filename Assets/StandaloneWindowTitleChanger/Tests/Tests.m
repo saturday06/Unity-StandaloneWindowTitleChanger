@@ -27,18 +27,19 @@
 #import <string.h>
 #import <Cocoa/Cocoa.h>
 
-static uint32_t readInMainThread(const char* className, char *output, int32_t outputLen)
+static uint32_t readInMainThread(char *output, int32_t outputLen)
 {
     memset(output, 0, outputLen);
     __block BOOL found = NO;
     __block NSMutableString *outputString = [NSMutableString string];
 
+    // We don't use [NSApplication mainWindow]. That is nil when the application is inactive or hidden.
     [[[NSApplication sharedApplication] windows] enumerateObjectsUsingBlock:^(NSWindow *window, NSUInteger idx, BOOL *stop)
     {
         (void)idx;
         (void)stop;
 
-        if (![[window className] isEqualToString:[NSString stringWithUTF8String:className]])
+        if (![window isMainWindow])
         {
             return;
         }
@@ -67,17 +68,17 @@ static uint32_t readInMainThread(const char* className, char *output, int32_t ou
     return 0;
 }
 
-uint32_t StandaloneWindowTitleChanger_Tests_ReadNative(const char* className, char *output, int32_t outputLen)
+uint32_t StandaloneWindowTitleChanger_Tests_ReadNative(char *output, int32_t outputLen)
 {
     if ([NSThread isMainThread])
     {
-        return readInMainThread(className, output, outputLen);
+        return readInMainThread(output, outputLen);
     }
 
     __block uint32_t readResult = 0;
     dispatch_sync(dispatch_get_main_queue(),
     ^{
-        readResult = readInMainThread(className, output, outputLen);
+        readResult = readInMainThread(output, outputLen);
     });
     return readResult;
 }

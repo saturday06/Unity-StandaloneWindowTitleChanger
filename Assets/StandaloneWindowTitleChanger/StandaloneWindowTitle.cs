@@ -165,19 +165,13 @@ namespace StandaloneWindowTitleChanger
     {
         public static readonly bool IsSupported = true;
 
-#if UNITY_2017 || UNITY_2018 || UNITY_2019_1 || UNITY_2019_2
-        public const string TargetWindowClassName = "NSWindow"; // visible for testing
-#else
-#error Please check your unity player's class name
-#endif
-
         [DllImport ("StandaloneWindowTitleChanger", EntryPoint =
  "StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative")]
-        private static extern int ChangeNative(string title, string targetWindowClassName);
+        private static extern int ChangeNative(string title);
 
         public static void Change(string title)
         {
-            var result = ChangeNative(title, TargetWindowClassName);
+            var result = ChangeNative(title);
             switch (result)
             {
                 case 0:

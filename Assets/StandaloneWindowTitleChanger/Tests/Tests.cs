@@ -137,12 +137,12 @@ namespace StandaloneWindowTitleChanger.Tests
 
         [DllImport ("StandaloneWindowTitleChanger_Tests", EntryPoint =
  "StandaloneWindowTitleChanger_Tests_ReadNative")]
-        private static extern int ReadNative(string targetWindowClass, StringBuilder title, int titleCapacity);
+        private static extern int ReadNative(StringBuilder title, int titleCapacity);
 
         private static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
         {
             var stringBuilder = new StringBuilder(4096);
-            var result = ReadNative(StandaloneWindowTitle.TargetWindowClassName, stringBuilder, stringBuilder.Capacity);
+            var result = ReadNative(stringBuilder, stringBuilder.Capacity);
             if (result != 0)
             {
                 throw new Exception("result=" + result);

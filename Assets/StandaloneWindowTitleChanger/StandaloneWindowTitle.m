@@ -26,15 +26,17 @@
 #import <stdint.h>
 #import <Cocoa/Cocoa.h>
 
-static uint32_t changeInMainThread(const char *title, const char *className)
+static uint32_t changeInMainThread(const char *title)
 {
     __block BOOL changed = NO;
+
+    // We don't use [NSApplication mainWindow]. That is nil when the application is inactive or hidden.
     [[[NSApplication sharedApplication] windows] enumerateObjectsUsingBlock:^(NSWindow *window, NSUInteger idx, BOOL *stop)
     {
         (void)idx;
         (void)stop;
 
-        if (![[window className] isEqualToString:[NSString stringWithUTF8String:className]])
+        if (![window isMainWindow])
         {
             return;
         }
@@ -46,17 +48,17 @@ static uint32_t changeInMainThread(const char *title, const char *className)
     return changed ? 0 : 1;
 }
 
-uint32_t StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative(const char *title, const char* className)
+uint32_t StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative(const char *title)
 {
     if ([NSThread isMainThread])
     {
-        return changeInMainThread(title, className);
+        return changeInMainThread(title);
     }
 
     __block uint32_t changeResult = 0;
     dispatch_sync(dispatch_get_main_queue(),
     ^{
-        changeResult = changeInMainThread(title, className);
+        changeResult = changeInMainThread(title);
     });
     return changeResult;
 }
