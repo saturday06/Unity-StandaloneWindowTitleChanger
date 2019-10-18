@@ -27,60 +27,57 @@
 #import <string.h>
 #import <Cocoa/Cocoa.h>
 
-static uint32_t readInMainThread(char *output, int32_t output_len)
+static uint32_t readInMainThread(const char* className, char *output, int32_t outputLen)
 {
-    memset(output, 0, output_len);
-    __block int32_t output_offset = 0;
-    __block BOOL overflowed  = NO;
+    memset(output, 0, outputLen);
     __block BOOL found = NO;
+    __block NSMutableString *outputString = [NSMutableString string];
+
     [[[NSApplication sharedApplication] windows] enumerateObjectsUsingBlock:^(NSWindow *window, NSUInteger idx, BOOL *stop)
     {
         (void)idx;
         (void)stop;
-        const char *title = [[window title] UTF8String];
-        int32_t title_len = strlen(title);
-        if (output_offset + title_len + 1 >= output_len)
+
+        if (![[window className] isEqualToString:[NSString stringWithUTF8String:className]])
         {
-	        overflowed = YES;
+            return;
         }
-        else
+
+        if ([outputString length] > 0)
         {
-            memcpy(&output[output_offset], title, title_len);
-            output[output_offset + title_len] = '\n';
-            output_offset += title_len + 1;
+            [outputString appendString:@"\n"];
         }
-        
+        [outputString appendString:[window title]];
+
         found = YES;
     }];
-
-    // Remove last newline char
-    if (output_offset > 0 && output_offset <= output_len)
-    {
-        output[output_offset - 1] = 0;
-    }
 
     if (!found)
     {
         return 1;
     }
-    else if (overflowed)
+
+    const char *result = [outputString UTF8String];
+    if (outputLen < strlen(result) + 1)
     {
         return 2;
     }
+    strcpy(output, result);
+
     return 0;
 }
 
-uint32_t StandaloneWindowTitleChanger_Tests_ReadNative(char *output, int32_t output_len)
+uint32_t StandaloneWindowTitleChanger_Tests_ReadNative(const char* className, char *output, int32_t outputLen)
 {
     if ([NSThread isMainThread])
     {
-        return readInMainThread(output, output_len);
+        return readInMainThread(className, output, outputLen);
     }
 
-    __block uint32_t read_result = 0;
+    __block uint32_t readResult = 0;
     dispatch_sync(dispatch_get_main_queue(),
     ^{
-        read_result = readInMainThread(output, output_len);
+        readResult = readInMainThread(className, output, outputLen);
     });
-    return read_result;
+    return readResult;
 }

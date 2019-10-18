@@ -25,6 +25,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using UnityEngine;
 
 namespace StandaloneWindowTitleChanger
@@ -60,12 +61,21 @@ namespace StandaloneWindowTitleChanger
         [DllImportAttribute("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool SetWindowText(IntPtr hWnd, string text);
 
+        [DllImportAttribute("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
     }
 
     public static class StandaloneWindowTitle
     {
         public static readonly bool IsSupported = true;
+
+#if UNITY_2017 || UNITY_2018 || UNITY_2019_1 || UNITY_2019_2
+        public const string TargetWindowClassName = "UnityWndClass"; // visible for testing
+#else
+#error Please check your unity player's class name
+#endif
 
         private static bool EnumWindowsCallback(IntPtr hWnd, IntPtr parameterGCHandleIntPtr)
         {
@@ -85,13 +95,27 @@ namespace StandaloneWindowTitleChanger
                 return true;
             }
 
+            var className = new StringBuilder(4096);
+            var classNameLength = WindowsApi.GetClassName(hWnd, className, className.Capacity);
+            var getClassNameError = Marshal.GetLastWin32Error();
+            if (classNameLength == 0)
+            {
+                parameter.LastWin32Error = getClassNameError;
+                return true;
+            }
+
+            if (className.ToString() != TargetWindowClassName)
+            {
+                return true;
+            }
+
             parameter.Found = true;
 
             var setWindowTextSuccess = WindowsApi.SetWindowText(hWnd, parameter.Title);
-            var lastWin32Error = Marshal.GetLastWin32Error();
+            var setWindowTextError = Marshal.GetLastWin32Error();
             if (!setWindowTextSuccess)
             {
-                parameter.LastWin32Error = lastWin32Error;
+                parameter.LastWin32Error = setWindowTextError;
             }
 
             return true;
@@ -141,13 +165,19 @@ namespace StandaloneWindowTitleChanger
     {
         public static readonly bool IsSupported = true;
 
+#if UNITY_2017 || UNITY_2018 || UNITY_2019_1 || UNITY_2019_2
+        public const string TargetWindowClassName = "NSWindow"; // visible for testing
+#else
+#error Please check your unity player's class name
+#endif
+
         [DllImport ("StandaloneWindowTitleChanger", EntryPoint =
  "StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative")]
-        private static extern int ChangeNative(string title);
+        private static extern int ChangeNative(string title, string targetWindowClassName);
 
         public static void Change(string title)
         {
-            var result = ChangeNative(title);
+            var result = ChangeNative(title, TargetWindowClassName);
             switch (result)
             {
                 case 0:

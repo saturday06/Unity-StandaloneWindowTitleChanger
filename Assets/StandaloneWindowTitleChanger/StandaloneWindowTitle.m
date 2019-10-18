@@ -26,13 +26,19 @@
 #import <stdint.h>
 #import <Cocoa/Cocoa.h>
 
-static uint32_t changeInMainThread(const char *title)
+static uint32_t changeInMainThread(const char *title, const char *className)
 {
     __block BOOL changed = NO;
     [[[NSApplication sharedApplication] windows] enumerateObjectsUsingBlock:^(NSWindow *window, NSUInteger idx, BOOL *stop)
     {
         (void)idx;
         (void)stop;
+
+        if (![[window className] isEqualToString:[NSString stringWithUTF8String:className]])
+        {
+            return;
+        }
+
         [window setTitle:[NSString stringWithUTF8String:title]];
         changed = YES;
     }];
@@ -40,17 +46,17 @@ static uint32_t changeInMainThread(const char *title)
     return changed ? 0 : 1;
 }
 
-uint32_t StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative(const char *title)
+uint32_t StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative(const char *title, const char* className)
 {
     if ([NSThread isMainThread])
     {
-        return changeInMainThread(title);
+        return changeInMainThread(title, className);
     }
 
-    __block uint32_t change_result = 0;
+    __block uint32_t changeResult = 0;
     dispatch_sync(dispatch_get_main_queue(),
     ^{
-        change_result = changeInMainThread(title);
+        changeResult = changeInMainThread(title, className);
     });
-    return change_result;
+    return changeResult;
 }

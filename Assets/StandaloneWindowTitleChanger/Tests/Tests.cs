@@ -74,6 +74,20 @@ namespace StandaloneWindowTitleChanger.Tests
                 return true;
             }
 
+            var className = new StringBuilder(5000);
+            var classNameLength = WindowsApi.GetClassName(hWnd, className, className.Capacity);
+            var getClassNameError = Marshal.GetLastWin32Error();
+            if (classNameLength == 0)
+            {
+                parameter.LastWin32Error = getClassNameError;
+                return true;
+            }
+
+            if (className.ToString() != StandaloneWindowTitle.TargetWindowClassName)
+            {
+                return true;
+            }
+
             parameter.Found = true;
             var stringBuilder = new StringBuilder(4096);
             var getWindowTextResult = TestWindowsApi.GetWindowText(hWnd, stringBuilder, stringBuilder.Capacity);
@@ -123,12 +137,12 @@ namespace StandaloneWindowTitleChanger.Tests
 
         [DllImport ("StandaloneWindowTitleChanger_Tests", EntryPoint =
  "StandaloneWindowTitleChanger_Tests_ReadNative")]
-        private static extern int ReadNative(StringBuilder title, int titleCapacity);
+        private static extern int ReadNative(string targetWindowClass, StringBuilder title, int titleCapacity);
 
         private static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
         {
             var stringBuilder = new StringBuilder(4096);
-            var result = ReadNative(stringBuilder, stringBuilder.Capacity);
+            var result = ReadNative(StandaloneWindowTitle.TargetWindowClassName, stringBuilder, stringBuilder.Capacity);
             if (result != 0)
             {
                 throw new Exception("result=" + result);
