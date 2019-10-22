@@ -1,5 +1,6 @@
 trigger:
   - master
+  - refs/tags/v*
 
 jobs:
   - job: Windows
@@ -22,15 +23,26 @@ jobs:
           mergeTestResults: true
           failTaskOnFailedTests: true
           testRunTitle: 'Windows Test'
-      - script: '"%USERPROFILE%\Unity\Editor\Unity.exe" -projectpath "%cd%" -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -exportPackage Assets StandaloneWindowTitleChanger.unitypackage'
+      - powershell: |
+                $commit_hash = & git rev-parse HEAD
+                $tag = & git name-rev --tags --name-only $commit_hash
+                $match = (New-Object Regex("^v([0-9]+)\.([0-9]+)\.([0-9]+)$")).Matches($tag)
+                if ($match[0].Groups.Count -eq 4) {
+                    $version = $match[0].Groups[1].Value + "." + $match[0].Groups[2].Value + "." + $match[0].Groups[3].Value
+                } else {
+                    $version = "SNAPSHOT-" + $commit_hash
+                }
+                $cd = [System.IO.Directory]::GetCurrentDirectory()
+                & "$Env:USERPROFILE\Unity\Editor\Unity.exe" -projectpath $cd -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -exportPackage Assets "$(Build.ArtifactStagingDirectory)\StandaloneWindowTitleChanger-$version.unitypackage"
       - script: type log.txt
         condition: always()
       - script: '"%USERPROFILE%\Unity\Editor\Unity.exe" -projectpath "%cd%" -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -returnlicense'
         condition: always()
       - script: type log.txt
         condition: always()
-      - publish: StandaloneWindowTitleChanger.unitypackage
-        artifact: UnityPackage
+      - task: PublishBuildArtifacts@1
+        inputs:
+          artifactName: UnityPackage
 
   - job: macOS
     pool:
@@ -59,5 +71,7 @@ jobs:
     steps:
       - script: sudo xcode-select --switch /Applications/Xcode_9.4.1.app
       - script: cd Assets/StandaloneWindowTitleChanger && make -f Makefile.macOS clean all
-      - publish: Assets
-        artifact: macOSNativeBundle
+      - script: cp Assets/StandaloneWindowTitleChanger/Plugins/StandaloneWindowTitleChanger.bundle/Contents/MacOS/StandaloneWindowTitleChanger Assets/StandaloneWindowTitleChanger/Tests/Plugins/StandaloneWindowTitleChanger_Tests.bundle/Contents/MacOS/StandaloneWindowTitleChanger_Tests "$(Build.ArtifactStagingDirectory)"
+      - task: PublishBuildArtifacts@1
+        inputs:
+          artifactName: macOSNativeBundle
