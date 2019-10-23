@@ -33,7 +33,7 @@ jobs:
                     $version = "SNAPSHOT-" + $commit_hash
                 }
                 $cd = [System.IO.Directory]::GetCurrentDirectory()
-                & "$Env:USERPROFILE\Unity\Editor\Unity.exe" -projectpath $cd -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -exportPackage Assets "$(Build.ArtifactStagingDirectory)\StandaloneWindowTitleChanger-$version.unitypackage"
+                & "$Env:USERPROFILE\Unity\Editor\Unity.exe" -projectpath $cd -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -exportPackage Assets/StandaloneWindowTitleChanger "$(Build.ArtifactStagingDirectory)\StandaloneWindowTitleChanger-$version.unitypackage"
       - script: type log.txt
         condition: always()
       - script: '"%USERPROFILE%\Unity\Editor\Unity.exe" -projectpath "%cd%" -logfile log.txt -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit -returnlicense'
