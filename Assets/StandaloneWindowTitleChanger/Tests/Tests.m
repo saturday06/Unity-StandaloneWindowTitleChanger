@@ -27,8 +27,17 @@
 #import <string.h>
 #import <Cocoa/Cocoa.h>
 
-static uint32_t readInMainThread(char *output, int32_t outputLen)
+static uint32_t readInMainThread(char *output, int32_t signedOutputLen)
 {
+    if (output == NULL)
+    {
+        return 3;
+    }
+    if (signedOutputLen < 0)
+    {
+        return 4;
+    }
+    size_t outputLen = (size_t)signedOutputLen;
     memset(output, 0, outputLen);
     __block BOOL found = NO;
     __block NSMutableString *outputString = [NSMutableString string];
