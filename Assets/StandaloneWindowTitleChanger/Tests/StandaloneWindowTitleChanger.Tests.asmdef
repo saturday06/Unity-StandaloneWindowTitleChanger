@@ -3,6 +3,9 @@
     "references": [
         "StandaloneWindowTitleChanger"
     ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
     "includePlatforms": [],
     "excludePlatforms": []
 }
