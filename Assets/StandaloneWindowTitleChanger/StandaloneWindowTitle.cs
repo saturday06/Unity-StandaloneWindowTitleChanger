@@ -38,6 +38,9 @@ using NativeStandaloneWindowTitle = StandaloneWindowTitleChanger.UnsupportedStan
 
 namespace StandaloneWindowTitleChanger
 {
+    /// <summary>
+    /// Exception.
+    /// </summary>
     public class StandaloneWindowTitleChangeException : Exception
     {
         public enum Error
@@ -54,16 +57,30 @@ namespace StandaloneWindowTitleChanger
         }
     }
 
+    /// <summary>
+    /// Window title.
+    /// </summary>
     public static class StandaloneWindowTitle
     {
+        /// <summary>
+        /// true if running platform is supported.
+        /// </summary>
         public static readonly bool IsSupported = NativeStandaloneWindowTitle.IsSupported;
 
+        /// <summary>
+        /// Change window title.
+        /// </summary>
+        /// <param name="newTitle"></param>
+        /// <exception cref="StandaloneWindowTitleChanger.StandaloneWindowTitleChangeException">On error</exception>
         public static void Change(string newTitle)
         {
             NativeStandaloneWindowTitle.Change(newTitle);
         }
     }
 
+    /// <summary>
+    /// Windows API wrappers. Visible for testing.
+    /// </summary>
     public static class WindowsApi
     {
         [DllImport("kernel32.dll")]
@@ -84,11 +101,17 @@ namespace StandaloneWindowTitleChanger
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
     }
 
+    /// <summary>
+    /// Native implementation. Visible for testing.
+    /// </summary>
     public static class WindowsStandaloneWindowTitle
     {
         internal static readonly bool IsSupported = true;
 
 #if UNITY_2017 || UNITY_2018 || UNITY_2019_1 || UNITY_2019_2
+        /// <summary>
+        /// Windows class name for main window handle. Visible for testing.
+        /// </summary>
         public const string TargetWindowClassName = "UnityWndClass";
 #else
 #error Please check your unity player's class name
