@@ -28,7 +28,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 
-#if UNITY_STANDALONE_WIN
+#if UNITY_EDITOR
+using NativeStandaloneWindowTitle = StandaloneWindowTitleChanger.UnsupportedStandaloneWindowTitle;
+#elif UNITY_STANDALONE_WIN
 using NativeStandaloneWindowTitle = StandaloneWindowTitleChanger.WindowsStandaloneWindowTitle;
 #elif UNITY_STANDALONE_OSX
 using NativeStandaloneWindowTitle = StandaloneWindowTitleChanger.MacOSStandaloneWindowTitle;

@@ -34,7 +34,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-#if UNITY_STANDALONE_WIN
+#if UNITY_EDITOR
+using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.Unsupported;
+#elif UNITY_STANDALONE_WIN
 using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.Windows;
 #elif UNITY_STANDALONE_OSX
 using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.MacOS;
