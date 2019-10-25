@@ -177,6 +177,20 @@ namespace StandaloneWindowTitleChanger.Tests
         }
 
         [Test]
+        public void ThrowExceptionIfUnsupported()
+        {
+            if (Native.Supported)
+            {
+                return;
+            }
+            var e = Assert.Throws<StandaloneWindowTitleChangeException>(() =>
+            {
+                StandaloneWindowTitle.Change("test");
+            });
+            Assert.That(e.Cause, Is.EqualTo(StandaloneWindowTitleChangeException.Error.NotSupported));
+        }
+
+        [Test]
         public void MainThreadCanChangeTitle()
         {
             if (!Native.Supported)
