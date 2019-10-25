@@ -34,139 +34,156 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
+#if UNITY_STANDALONE_WIN
+using Native = StandaloneWindowTitleChanger.Tests.Tests.Windows;
+#elif UNITY_STANDALONE_OSX
+using Native = StandaloneWindowTitleChanger.Tests.Tests.MacOS;
+#else
+using Native = StandaloneWindowTitleChanger.Tests.Tests.Unsupported;
+#endif
+
 namespace StandaloneWindowTitleChanger.Tests
 {
     public class Tests
     {
-#if UNITY_STANDALONE_WIN
-        private bool _supported = true;
-
-        private static class TestWindowsApi
+        internal static class Windows
         {
-            [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-            internal static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString,
-                int nMaxCount);
-        }
+            internal static readonly bool Supported = true;
 
-        private class EnumWindowsParameter
-        {
-            internal System.Collections.Generic.List<string> Titles;
-            internal uint ProcessId;
-            internal bool Found;
-            internal int LastWin32Error;
-        }
-
-        private static bool EnumWindowsCallback(IntPtr hWnd, IntPtr parameterGCHandleIntPtr)
-        {
-            var parameterGCHandle = GCHandle.FromIntPtr(parameterGCHandleIntPtr);
-            var parameterObject = parameterGCHandle.Target;
-            if (!(parameterObject is EnumWindowsParameter))
+            private static class TestWindowsApi
             {
-                Debug.LogException(new Exception("Sanity error: parameter is not a EnumWindowsParameter: " + parameterObject));
-                return false;
+                [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+                internal static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
             }
 
-            var parameter = (EnumWindowsParameter) parameterObject;
-            uint processId;
-            WindowsApi.GetWindowThreadProcessId(hWnd, out processId);
-            if (parameter.ProcessId != processId)
+            private class EnumWindowsParameter
             {
+                internal System.Collections.Generic.List<string> Titles;
+                internal uint ProcessId;
+                internal bool Found;
+                internal int LastWin32Error;
+            }
+
+            private static bool EnumWindowsCallback(IntPtr hWnd, IntPtr parameterGCHandleIntPtr)
+            {
+                var parameterGCHandle = GCHandle.FromIntPtr(parameterGCHandleIntPtr);
+                var parameterObject = parameterGCHandle.Target;
+                if (!(parameterObject is EnumWindowsParameter))
+                {
+                    Debug.LogException(new Exception("Sanity error: parameter is not a EnumWindowsParameter: " +
+                                                     parameterObject));
+                    return false;
+                }
+
+                var parameter = (EnumWindowsParameter) parameterObject;
+                uint processId;
+                WindowsApi.GetWindowThreadProcessId(hWnd, out processId);
+                if (parameter.ProcessId != processId)
+                {
+                    return true;
+                }
+
+                var className = new StringBuilder(5000);
+                var classNameLength = WindowsApi.GetClassName(hWnd, className, className.Capacity);
+                var getClassNameError = Marshal.GetLastWin32Error();
+                if (classNameLength == 0)
+                {
+                    parameter.LastWin32Error = getClassNameError;
+                    return true;
+                }
+
+                if (className.ToString() != WindowsStandaloneWindowTitle.TargetWindowClassName)
+                {
+                    return true;
+                }
+
+                parameter.Found = true;
+                var stringBuilder = new StringBuilder(4096);
+                var getWindowTextResult = TestWindowsApi.GetWindowText(hWnd, stringBuilder, stringBuilder.Capacity);
+                var lastWin32Error = Marshal.GetLastWin32Error();
+                if (getWindowTextResult == 0)
+                {
+                    parameter.LastWin32Error = lastWin32Error;
+                    stringBuilder.Append("ERROR");
+                }
+
+                parameter.Titles.Add(stringBuilder.ToString());
                 return true;
             }
 
-            var className = new StringBuilder(5000);
-            var classNameLength = WindowsApi.GetClassName(hWnd, className, className.Capacity);
-            var getClassNameError = Marshal.GetLastWin32Error();
-            if (classNameLength == 0)
+            internal static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
             {
-                parameter.LastWin32Error = getClassNameError;
-                return true;
-            }
+                var parameter = new EnumWindowsParameter
+                {
+                    Titles = new System.Collections.Generic.List<string>(),
+                    ProcessId = WindowsApi.GetCurrentProcessId(),
+                };
 
-            if (className.ToString() != StandaloneWindowTitle.TargetWindowClassName)
-            {
-                return true;
-            }
+                var parameterGCHandle = GCHandle.Alloc(parameter);
+                try
+                {
+                    WindowsApi.EnumWindows(EnumWindowsCallback, GCHandle.ToIntPtr(parameterGCHandle));
+                }
+                finally
+                {
+                    parameterGCHandle.Free();
+                }
 
-            parameter.Found = true;
-            var stringBuilder = new StringBuilder(4096);
-            var getWindowTextResult = TestWindowsApi.GetWindowText(hWnd, stringBuilder, stringBuilder.Capacity);
-            var lastWin32Error = Marshal.GetLastWin32Error();
-            if (getWindowTextResult == 0)
-            {
-                parameter.LastWin32Error = lastWin32Error;
-                stringBuilder.Append("ERROR");
-            }
+                if (parameter.LastWin32Error != 0)
+                {
+                    throw new Exception("Unknown error: " + parameter.LastWin32Error);
+                }
 
-            parameter.Titles.Add(stringBuilder.ToString());
-            return true;
+                if (!parameter.Found)
+                {
+                    throw new Exception("No window found");
+                }
+
+                return parameter.Titles;
+            }
         }
 
-        private static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
+        internal static class MacOS
         {
-            var parameter = new EnumWindowsParameter
-            {
-                Titles = new System.Collections.Generic.List<string>(),
-                ProcessId = WindowsApi.GetCurrentProcessId(),
-            };
+            internal static readonly bool Supported = true;
 
-            var parameterGCHandle = GCHandle.Alloc(parameter);
-            try
-            {
-                WindowsApi.EnumWindows(EnumWindowsCallback, GCHandle.ToIntPtr(parameterGCHandle));
-            }
-            finally
-            {
-                parameterGCHandle.Free();
-            }
+            [DllImport("StandaloneWindowTitleChanger_Tests", EntryPoint =
+                "StandaloneWindowTitleChanger_Tests_ReadNative")]
+            private static extern int ReadNative(StringBuilder title, int titleCapacity);
 
-            if (parameter.LastWin32Error != 0)
+            internal static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
             {
-                throw new Exception("Unknown error: " + parameter.LastWin32Error);
-            }
+                var stringBuilder = new StringBuilder(4096);
+                var result = ReadNative(stringBuilder, stringBuilder.Capacity);
+                if (result != 0)
+                {
+                    throw new Exception("result=" + result);
+                }
 
-            if (!parameter.Found)
-            {
-                throw new Exception("No window found");
+                return stringBuilder.ToString().Split('\n').ToList();
             }
-
-            return parameter.Titles;
         }
-#elif UNITY_STANDALONE_OSX
-        private bool _supported = true;
 
-        [DllImport ("StandaloneWindowTitleChanger_Tests", EntryPoint =
- "StandaloneWindowTitleChanger_Tests_ReadNative")]
-        private static extern int ReadNative(StringBuilder title, int titleCapacity);
-
-        private static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
+        internal static class Unsupported
         {
-            var stringBuilder = new StringBuilder(4096);
-            var result = ReadNative(stringBuilder, stringBuilder.Capacity);
-            if (result != 0)
-            {
-                throw new Exception("result=" + result);
-            }
-            return stringBuilder.ToString().Split('\n').ToList();
-        }
-#else
-        private bool _supported = false;
+            internal static readonly bool Supported = false;
 
-        private static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
-        {
-            throw new Exception("Not supported");
+            internal static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
+            {
+                throw new Exception("Not supported");
+            }
         }
-#endif
+
         [Test]
         public void MainThreadCanChangeTitle()
         {
-            if (!_supported)
+            if (!Native.Supported)
             {
                 return;
             }
             var input = DateTime.Now.ToString(CultureInfo.CurrentCulture);
             StandaloneWindowTitle.Change(input);
-            var outputs = ReadStandaloneWindowTitles();
+            var outputs = Native.ReadStandaloneWindowTitles();
             Assert.Positive(outputs.Count);
             foreach (var output in outputs)
             {
@@ -177,7 +194,7 @@ namespace StandaloneWindowTitleChanger.Tests
         [UnityTest]
         public IEnumerator SubThreadCanChangeTitle()
         {
-            if (!_supported)
+            if (!Native.Supported)
             {
                 yield break;
             }
@@ -198,7 +215,7 @@ namespace StandaloneWindowTitleChanger.Tests
             thread.Start();
             yield return new WaitWhile(() => thread.IsAlive);
             Assert.Null(exception);
-            var outputs = ReadStandaloneWindowTitles();
+            var outputs = Native.ReadStandaloneWindowTitles();
             Assert.Positive(outputs.Count);
             foreach (var output in outputs)
             {

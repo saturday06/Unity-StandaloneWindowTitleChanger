@@ -28,6 +28,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 
+#if UNITY_STANDALONE_WIN
+using NativeStandaloneWindowTitle = StandaloneWindowTitleChanger.WindowsStandaloneWindowTitle;
+#elif UNITY_STANDALONE_OSX
+using NativeStandaloneWindowTitle = StandaloneWindowTitleChanger.MacOSStandaloneWindowTitle;
+#else
+using NativeStandaloneWindowTitle = StandaloneWindowTitleChanger.UnsupportedStandaloneWindowTitle;
+#endif
+
 namespace StandaloneWindowTitleChanger
 {
     public class StandaloneWindowTitleChangeException : Exception
@@ -46,8 +54,17 @@ namespace StandaloneWindowTitleChanger
         }
     }
 
-#if UNITY_STANDALONE_WIN
-    public static class WindowsApi // visible for testing
+    public static class StandaloneWindowTitle
+    {
+        public static readonly bool IsSupported = NativeStandaloneWindowTitle.IsSupported;
+
+        public static void Change(string newTitle)
+        {
+            NativeStandaloneWindowTitle.Change(newTitle);
+        }
+    }
+
+    public static class WindowsApi
     {
         [DllImport("kernel32.dll")]
         public static extern uint GetCurrentProcessId();
@@ -67,12 +84,12 @@ namespace StandaloneWindowTitleChanger
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
     }
 
-    public static class StandaloneWindowTitle
+    public static class WindowsStandaloneWindowTitle
     {
-        public static readonly bool IsSupported = true;
+        internal static readonly bool IsSupported = true;
 
 #if UNITY_2017 || UNITY_2018 || UNITY_2019_1 || UNITY_2019_2
-        public const string TargetWindowClassName = "UnityWndClass"; // visible for testing
+        public const string TargetWindowClassName = "UnityWndClass";
 #else
 #error Please check your unity player's class name
 #endif
@@ -129,7 +146,7 @@ namespace StandaloneWindowTitleChanger
             internal int LastWin32Error;
         }
 
-        public static void Change(string title)
+        internal static void Change(string title)
         {
             var parameter = new EnumWindowsParameter
             {
@@ -160,16 +177,16 @@ namespace StandaloneWindowTitleChanger
             }
         }
     }
-#elif UNITY_STANDALONE_OSX
-    public static class StandaloneWindowTitle
+
+    internal static class MacOSStandaloneWindowTitle
     {
-        public static readonly bool IsSupported = true;
+        internal static readonly bool IsSupported = true;
 
         [DllImport ("StandaloneWindowTitleChanger", EntryPoint =
  "StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative")]
         private static extern int ChangeNative(string title);
 
-        public static void Change(string title)
+        internal static void Change(string title)
         {
             var result = ChangeNative(title);
             switch (result)
@@ -184,14 +201,13 @@ namespace StandaloneWindowTitleChanger
             }
         }
     }
-#else
-    public static class StandaloneWindowTitle
-    {
-        public static readonly bool IsSupported = false;
 
-        public static void Change(string newTitle)
+    internal static class UnsupportedNativeStandaloneWindowTitle
+    {
+        internal static readonly bool IsSupported = false;
+
+        internal static void Change(string newTitle)
         {
         }
     }
-#endif
 }
