@@ -187,7 +187,7 @@ namespace StandaloneWindowTitleChanger
 #else
     public static class StandaloneWindowTitle
     {
-        public static readonly bool IsSupported = true;
+        public static readonly bool IsSupported = false;
 
         public static void Change(string newTitle)
         {
