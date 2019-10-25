@@ -226,7 +226,7 @@ namespace StandaloneWindowTitleChanger
         }
     }
 
-    internal static class UnsupportedNativeStandaloneWindowTitle
+    internal static class UnsupportedStandaloneWindowTitle
     {
         internal static readonly bool IsSupported = false;
 
