@@ -47,6 +47,7 @@ namespace StandaloneWindowTitleChanger
         {
             Unknown = 0,
             NoWindow = 1,
+            NotSupported = 2,
         }
 
         public readonly Error Cause;
@@ -231,6 +232,7 @@ namespace StandaloneWindowTitleChanger
 
         internal static void Change(string newTitle)
         {
+            throw new StandaloneWindowTitleChangeException(StandaloneWindowTitleChangeException.Error.NotSupported, "Not supported");
         }
     }
 }
