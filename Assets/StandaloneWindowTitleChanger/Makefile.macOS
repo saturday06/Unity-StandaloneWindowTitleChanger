@@ -25,7 +25,7 @@
 
 .PHONY: clean
 
-artifacts = Plugins/StandaloneWindowTitleChanger.bundle/Contents/MacOS/StandaloneWindowTitleChanger Tests/Plugins/StandaloneWindowTitleChanger_Tests.bundle/Contents/MacOS/StandaloneWindowTitleChanger_Tests
+artifacts = Plugins/StandaloneWindowTitleChanger.bundle/Contents/MacOS/StandaloneWindowTitleChanger Tests/Plugins/StandaloneWindowTitleChangerTests.bundle/Contents/MacOS/StandaloneWindowTitleChangerTests
 
 all: $(artifacts)
 
@@ -35,5 +35,5 @@ clean:
 Plugins/StandaloneWindowTitleChanger.bundle/Contents/MacOS/StandaloneWindowTitleChanger: Makefile.macOS StandaloneWindowTitle.m
 	xcrun -sdk macosx clang -arch i386 -arch x86_64 -Wall -Wextra -O2 -framework Cocoa -dynamiclib StandaloneWindowTitle.m -o $@
 
-Tests/Plugins/StandaloneWindowTitleChanger_Tests.bundle/Contents/MacOS/StandaloneWindowTitleChanger_Tests: Makefile.macOS Tests/StandaloneWindowTitleChangerTests.m
+Tests/Plugins/StandaloneWindowTitleChangerTests.bundle/Contents/MacOS/StandaloneWindowTitleChangerTests: Makefile.macOS Tests/StandaloneWindowTitleChangerTests.m
 	xcrun -sdk macosx clang -arch i386 -arch x86_64 -Wall -Wextra -O0 -framework Cocoa -dynamiclib Tests/StandaloneWindowTitleChangerTests.m -o $@

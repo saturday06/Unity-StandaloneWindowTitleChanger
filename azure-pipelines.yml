@@ -71,7 +71,7 @@ jobs:
     steps:
       - script: sudo xcode-select --switch /Applications/Xcode_9.4.1.app
       - script: cd Assets/StandaloneWindowTitleChanger && make -f Makefile.macOS clean all
-      - script: cp Assets/StandaloneWindowTitleChanger/Plugins/StandaloneWindowTitleChanger.bundle/Contents/MacOS/StandaloneWindowTitleChanger Assets/StandaloneWindowTitleChanger/Tests/Plugins/StandaloneWindowTitleChanger_Tests.bundle/Contents/MacOS/StandaloneWindowTitleChanger_Tests "$(Build.ArtifactStagingDirectory)"
+      - script: cp Assets/StandaloneWindowTitleChanger/Plugins/StandaloneWindowTitleChanger.bundle/Contents/MacOS/StandaloneWindowTitleChanger Assets/StandaloneWindowTitleChanger/Tests/Plugins/StandaloneWindowTitleChangerTests.bundle/Contents/MacOS/StandaloneWindowTitleChangerTests "$(Build.ArtifactStagingDirectory)"
       - task: PublishBuildArtifacts@1
         inputs:
           artifactName: macOSNativeBundle

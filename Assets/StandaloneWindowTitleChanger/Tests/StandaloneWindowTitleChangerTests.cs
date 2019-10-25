@@ -149,8 +149,8 @@ namespace StandaloneWindowTitleChanger.Tests
         {
             internal static readonly bool Supported = true;
 
-            [DllImport("StandaloneWindowTitleChanger_Tests", EntryPoint =
-                "StandaloneWindowTitleChanger_Tests_ReadNative")]
+            [DllImport("StandaloneWindowTitleChangerTests", EntryPoint =
+                "StandaloneWindowTitleChangerTests_ReadNative")]
             private static extern int ReadNative(StringBuilder title, int titleCapacity);
 
             internal static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
