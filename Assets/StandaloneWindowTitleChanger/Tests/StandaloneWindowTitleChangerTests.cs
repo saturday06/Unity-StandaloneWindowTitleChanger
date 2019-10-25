@@ -35,16 +35,16 @@ using System.Text;
 using System.Threading;
 
 #if UNITY_STANDALONE_WIN
-using Native = StandaloneWindowTitleChanger.Tests.Tests.Windows;
+using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.Windows;
 #elif UNITY_STANDALONE_OSX
-using Native = StandaloneWindowTitleChanger.Tests.Tests.MacOS;
+using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.MacOS;
 #else
-using Native = StandaloneWindowTitleChanger.Tests.Tests.Unsupported;
+using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.Unsupported;
 #endif
 
 namespace StandaloneWindowTitleChanger.Tests
 {
-    public class Tests
+    public class StandaloneWindowTitleChangerTests
     {
         internal static class Windows
         {
