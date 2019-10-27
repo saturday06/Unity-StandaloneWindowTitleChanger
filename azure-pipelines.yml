@@ -54,6 +54,7 @@ jobs:
       - powershell: Install-UnitySetupInstance -Installers (Find-UnitySetupInstaller -Version 2017.4.33f1 -Components Mac) -Destination "$Env:HOME/Unity"
       - script: |
                 # Unity 2017 installation randomly forget adding executable permission to upm-macos and UnityShaderCompiler
+                set -eux
                 check_and_add_executable_permission() {
                   if [ ! -x "$1" ]; then
                     stat -x "$1"
