@@ -77,7 +77,7 @@ static uint32_t readInMainThread(char *output, int32_t signedOutputLen)
     return 0;
 }
 
-uint32_t StandaloneWindowTitleChangerTests_ReadNative(char *output, int32_t outputLen)
+uint32_t StandaloneWindowTitleChanger_Tests_MacOSStandaloneWindowTitleTests_ReadNative(char *output, int32_t outputLen)
 {
     if ([NSThread isMainThread])
     {

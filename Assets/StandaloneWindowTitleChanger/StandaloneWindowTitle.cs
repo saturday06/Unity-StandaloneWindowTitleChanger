@@ -209,7 +209,7 @@ namespace StandaloneWindowTitleChanger
         internal static readonly bool IsSupported = true;
 
         [DllImport ("StandaloneWindowTitleChanger", EntryPoint =
- "StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative")]
+ "StandaloneWindowTitleChanger_MacOSStandaloneWindowTitle_ChangeNative")]
         private static extern int ChangeNative(string title);
 
         internal static void Change(string title)

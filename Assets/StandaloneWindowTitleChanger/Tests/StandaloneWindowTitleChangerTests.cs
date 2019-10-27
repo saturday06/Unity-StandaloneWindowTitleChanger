@@ -35,20 +35,20 @@ using System.Text;
 using System.Threading;
 
 #if UNITY_EDITOR
-using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.Unsupported;
+using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleTests.UnsupportedStandaloneWindowTitleTests;
 #elif UNITY_STANDALONE_WIN
-using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.Windows;
+using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleTests.WindowsStandaloneWindowTitleTests;
 #elif UNITY_STANDALONE_OSX
-using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.MacOS;
+using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleTests.MacOSStandaloneWindowTitleTests;
 #else
-using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleChangerTests.Unsupported;
+using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleTests.UnsupportedStandaloneWindowTitleTests;
 #endif
 
 namespace StandaloneWindowTitleChanger.Tests
 {
-    public class StandaloneWindowTitleChangerTests
+    public class StandaloneWindowTitleTests
     {
-        internal static class Windows
+        internal static class WindowsStandaloneWindowTitleTests
         {
             internal static readonly bool Supported = true;
 
@@ -145,12 +145,12 @@ namespace StandaloneWindowTitleChanger.Tests
             }
         }
 
-        internal static class MacOS
+        internal static class MacOSStandaloneWindowTitleTests
         {
             internal static readonly bool Supported = true;
 
             [DllImport("StandaloneWindowTitleChangerTests", EntryPoint =
-                "StandaloneWindowTitleChangerTests_ReadNative")]
+                "StandaloneWindowTitleChanger_Tests_MacOSStandaloneWindowTitleTests_ReadNative")]
             private static extern int ReadNative(StringBuilder title, int titleCapacity);
 
             internal static System.Collections.Generic.List<string> ReadStandaloneWindowTitles()
@@ -166,7 +166,7 @@ namespace StandaloneWindowTitleChanger.Tests
             }
         }
 
-        internal static class Unsupported
+        internal static class UnsupportedStandaloneWindowTitleTests
         {
             internal static readonly bool Supported = false;
 

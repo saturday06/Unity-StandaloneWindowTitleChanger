@@ -32,8 +32,8 @@ all: $(artifacts)
 clean:
 	rm -f $(artifacts)
 
-Plugins/StandaloneWindowTitleChanger.bundle/Contents/MacOS/StandaloneWindowTitleChanger: Makefile.macOS StandaloneWindowTitle.m
-	xcrun -sdk macosx clang -arch i386 -arch x86_64 -Wall -Wextra -O2 -framework Cocoa -dynamiclib StandaloneWindowTitle.m -o $@
+Plugins/StandaloneWindowTitleChanger.bundle/Contents/MacOS/StandaloneWindowTitleChanger: Makefile.macOS MacOSStandaloneWindowTitle.m
+	xcrun -sdk macosx clang -arch i386 -arch x86_64 -Wall -Wextra -O2 -framework Cocoa -dynamiclib MacOSStandaloneWindowTitle.m -o $@
 
-Tests/Plugins/StandaloneWindowTitleChangerTests.bundle/Contents/MacOS/StandaloneWindowTitleChangerTests: Makefile.macOS Tests/StandaloneWindowTitleChangerTests.m
-	xcrun -sdk macosx clang -arch i386 -arch x86_64 -Wall -Wextra -O0 -framework Cocoa -dynamiclib Tests/StandaloneWindowTitleChangerTests.m -o $@
+Tests/Plugins/StandaloneWindowTitleChangerTests.bundle/Contents/MacOS/StandaloneWindowTitleChangerTests: Makefile.macOS Tests/MacOSStandaloneWindowTitleTests.m
+	xcrun -sdk macosx clang -arch i386 -arch x86_64 -Wall -Wextra -O0 -framework Cocoa -dynamiclib Tests/MacOSStandaloneWindowTitleTests.m -o $@

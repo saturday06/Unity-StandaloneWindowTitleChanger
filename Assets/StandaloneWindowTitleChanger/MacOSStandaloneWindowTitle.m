@@ -48,7 +48,7 @@ static uint32_t changeInMainThread(const char *title)
     return changed ? 0 : 1;
 }
 
-uint32_t StandaloneWindowTitleChanger_StandaloneWindowTitle_ChangeNative(const char *title)
+uint32_t StandaloneWindowTitleChanger_MacOSStandaloneWindowTitle_ChangeNative(const char *title)
 {
     if ([NSThread isMainThread])
     {
