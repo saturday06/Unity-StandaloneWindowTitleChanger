@@ -52,6 +52,16 @@ jobs:
       - script: mkdir ~/.unitysetup
       - powershell: Install-Module UnitySetup -Scope CurrentUser -Force
       - powershell: Install-UnitySetupInstance -Installers (Find-UnitySetupInstaller -Version 2017.4.33f1 -Components Mac) -Destination "$Env:HOME/Unity"
+      - script: |
+                # Unity 2017 installation randomly forget adding executable permission to upm-macos and UnityShaderCompiler
+                check_and_add_executable_permission() {
+                  if [ ! -x "$1" ]; then
+                    stat -x "$1"
+                    chmod u+x "$1"
+                  fi
+                }
+                check_and_add_executable_permission "$HOME/Unity/Unity.app/Contents/Resources/Upm/upm-macos"
+                check_and_add_executable_permission "$HOME/Unity/Unity.app/Contents/Tools/UnityShaderCompiler"
       - script: $HOME/Unity/Unity.app/Contents/MacOS/Unity -projectpath $PWD -logfile -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -quit
       - script: $HOME/Unity/Unity.app/Contents/MacOS/Unity -projectpath $PWD -logfile -serial "$(UNITY_SERIAL)" -username "$(UNITY_USERNAME)" -password "$(UNITY_PASSWORD)" -batchmode -runTests -testResults testResults.xml -testPlatform StandaloneOSX
       - task: PublishTestResults@2
