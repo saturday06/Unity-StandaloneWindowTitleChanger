@@ -57,7 +57,7 @@ jobs:
                 check_and_add_executable_permission() {
                   if [ ! -x "$1" ]; then
                     stat -x "$1"
-                    chmod u+x "$1"
+                    sudo chmod a+x "$1" # owned by root
                   fi
                 }
                 check_and_add_executable_permission "$HOME/Unity/Unity.app/Contents/Resources/Upm/upm-macos"
