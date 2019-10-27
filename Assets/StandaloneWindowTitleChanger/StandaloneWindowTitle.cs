@@ -26,6 +26,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using AOT;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -120,6 +121,7 @@ namespace StandaloneWindowTitleChanger
 #error Please check your unity player's class name
 #endif
 
+        [MonoPInvokeCallback(typeof(WindowsApi.EnumWindowsProc))]
         private static bool EnumWindowsCallback(IntPtr hWnd, IntPtr parameterGCHandleIntPtr)
         {
             var parameterGCHandle = GCHandle.FromIntPtr(parameterGCHandleIntPtr);
