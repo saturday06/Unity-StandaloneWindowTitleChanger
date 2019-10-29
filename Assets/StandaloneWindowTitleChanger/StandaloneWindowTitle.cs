@@ -153,7 +153,7 @@ namespace StandaloneWindowTitleChanger
             var getClassNameError = Marshal.GetLastWin32Error();
             if (classNameLength == 0)
             {
-                parameter.LastWin32Error = getClassNameError;
+                Debug.LogException(new Exception("Failed to get window class name for HWND:" + hWnd, new Win32Exception(getClassNameError)));
                 return true;
             }
 
