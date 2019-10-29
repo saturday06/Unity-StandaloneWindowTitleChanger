@@ -188,10 +188,15 @@ namespace StandaloneWindowTitleChanger
 
         internal static void Change(string title)
         {
+            // The article https://qiita.com/kirurobo/items/82dd484ad6374e725a43#%E5%95%8F%E9%A1%8C%E7%82%B9-3
+            // says that System.Diagnostics.Process.GetCurrentProcess().Id fails in some environment. We use
+            // GetCurrentProcessId() instead believing it will never fail.
+            var processId = WindowsApi.GetCurrentProcessId();
+
             var parameter = new EnumWindowsParameter
             {
                 Title = title,
-                ProcessId = WindowsApi.GetCurrentProcessId(),
+                ProcessId = processId,
             };
 
             var parameterGCHandle = GCHandle.Alloc(parameter);
