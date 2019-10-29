@@ -143,8 +143,10 @@ namespace StandaloneWindowTitleChanger
             var parameter = (EnumWindowsParameter) parameterObject;
             uint processId;
             WindowsApi.GetWindowThreadProcessId(hWnd, out processId);
+            //var getWindowThreadProcessIdError = Marshal.GetLastWin32Error();
             if (parameter.ProcessId != processId)
             {
+                //Debug.LogException(new Exception("Failed to get window process id for HWND:" + hWnd, new Win32Exception(getWindowThreadProcessIdError)));
                 return true;
             }
 
@@ -162,15 +164,16 @@ namespace StandaloneWindowTitleChanger
                 return true;
             }
 
-            parameter.Found = true;
-
             var setWindowTextSuccess = WindowsApi.SetWindowText(hWnd, parameter.Title);
             var setWindowTextError = Marshal.GetLastWin32Error();
             if (!setWindowTextSuccess)
             {
-                parameter.LastWin32Error = setWindowTextError;
+                parameter.InnerExceptionMessage = "Failed to change window title for HWND:" + hWnd;
+                parameter.InnerException = new Win32Exception(setWindowTextError);
+                return true;
             }
 
+            parameter.Found = true;
             return true;
         }
 
@@ -179,7 +182,8 @@ namespace StandaloneWindowTitleChanger
             internal string Title;
             internal uint ProcessId;
             internal bool Found;
-            internal int LastWin32Error;
+            internal string InnerExceptionMessage;
+            internal Exception InnerException;
         }
 
         internal static void Change(string title)
@@ -208,10 +212,10 @@ namespace StandaloneWindowTitleChanger
                 throw new StandaloneWindowTitleChangeException(StandaloneWindowTitleChangeException.Error.Unknown,
                     "Failed to enumerate windows", new Win32Exception(enumWindowsError));
             }
-            if (parameter.LastWin32Error != 0)
+            if (parameter.InnerException != null)
             {
                 throw new StandaloneWindowTitleChangeException(StandaloneWindowTitleChangeException.Error.Unknown,
-                    "Unknown error: " + parameter.LastWin32Error);
+                    parameter.InnerExceptionMessage, parameter.InnerException);
             }
             if (!parameter.Found)
             {
