@@ -24,6 +24,7 @@
 // For more information, please refer to <http://unlicense.org>
 
 using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 using AOT;
@@ -128,7 +129,9 @@ namespace StandaloneWindowTitleChanger
             var parameterObject = parameterGCHandle.Target;
             if (!(parameterObject is EnumWindowsParameter))
             {
-                Debug.LogException(new Exception("Sanity error: parameter is not a EnumWindowsParameter: " + parameterObject));
+                var parameterTypeName =
+                    parameterObject == null ? "null" : parameterObject.GetType().AssemblyQualifiedName;
+                Debug.LogException(new Exception("Fatal sanity error: parameter is not a EnumWindowsParameter but " + parameterTypeName + ": " + parameterObject));
                 return false;
             }
 
