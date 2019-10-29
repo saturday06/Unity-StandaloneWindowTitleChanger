@@ -60,6 +60,11 @@ namespace StandaloneWindowTitleChanger
         {
             Cause = cause;
         }
+
+        internal StandaloneWindowTitleChangeException(Error cause, string message, Exception innerException) : base(message, innerException)
+        {
+            Cause = cause;
+        }
     }
 
     /// <summary>
@@ -91,7 +96,7 @@ namespace StandaloneWindowTitleChanger
         [DllImport("kernel32.dll")]
         public static extern uint GetCurrentProcessId();
 
-        [DllImport("user32.dll")]
+        [DllImportAttribute("user32.dll", SetLastError = true)]
         public static extern bool EnumWindows(EnumWindowsProc enumWindowsProc, IntPtr lParam);
 
         [DllImportAttribute("user32.dll", SetLastError = true)]
@@ -186,21 +191,28 @@ namespace StandaloneWindowTitleChanger
             };
 
             var parameterGCHandle = GCHandle.Alloc(parameter);
+            bool enumWindowsResult;
+            int enumWindowsError;
             try
             {
-                WindowsApi.EnumWindows(EnumWindowsCallback, GCHandle.ToIntPtr(parameterGCHandle));
+                enumWindowsResult = WindowsApi.EnumWindows(EnumWindowsCallback, GCHandle.ToIntPtr(parameterGCHandle));
+                enumWindowsError = Marshal.GetLastWin32Error();
             }
             finally
             {
                 parameterGCHandle.Free();
             }
 
+            if (!enumWindowsResult)
+            {
+                throw new StandaloneWindowTitleChangeException(StandaloneWindowTitleChangeException.Error.Unknown,
+                    "Failed to enumerate windows", new Win32Exception(enumWindowsError));
+            }
             if (parameter.LastWin32Error != 0)
             {
                 throw new StandaloneWindowTitleChangeException(StandaloneWindowTitleChangeException.Error.Unknown,
                     "Unknown error: " + parameter.LastWin32Error);
             }
-
             if (!parameter.Found)
             {
                 throw new StandaloneWindowTitleChangeException(StandaloneWindowTitleChangeException.Error.NoWindow,
