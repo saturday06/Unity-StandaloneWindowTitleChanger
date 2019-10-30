@@ -151,6 +151,8 @@ namespace StandaloneWindowTitleChanger
             if (parameter.ProcessId != processId)
             {
                 if (getWindowThreadProcessIdError != WindowsApi.ERROR_SUCCESS &&
+                    // Ignore ERROR_INVALID_PARAMETER and ERROR_INVALID_WINDOW_HANDLE. They occur when the other process
+                    // or thread destroys the hWnd asynchronously.
                     getWindowThreadProcessIdError != WindowsApi.ERROR_INVALID_PARAMETER &&
                     getWindowThreadProcessIdError != WindowsApi.ERROR_INVALID_WINDOW_HANDLE)
                 {
@@ -166,6 +168,8 @@ namespace StandaloneWindowTitleChanger
             if (classNameLength == 0)
             {
                 if (getClassNameError != WindowsApi.ERROR_SUCCESS &&
+                    // Ignore ERROR_INVALID_PARAMETER and ERROR_INVALID_WINDOW_HANDLE. They occur when the other thread
+                    // destroys the hWnd asynchronously.
                     getClassNameError != WindowsApi.ERROR_INVALID_PARAMETER &&
                     getClassNameError != WindowsApi.ERROR_INVALID_WINDOW_HANDLE)
                 {
@@ -184,6 +188,8 @@ namespace StandaloneWindowTitleChanger
             var setWindowTextError = Marshal.GetLastWin32Error();
             if (!setWindowTextSuccess)
             {
+                // Ignore ERROR_INVALID_PARAMETER and ERROR_INVALID_WINDOW_HANDLE. They occur when the other thread
+                // destroys the hWnd asynchronously.
                 if (setWindowTextError != WindowsApi.ERROR_INVALID_PARAMETER &&
                     setWindowTextError != WindowsApi.ERROR_INVALID_WINDOW_HANDLE)
                 {
