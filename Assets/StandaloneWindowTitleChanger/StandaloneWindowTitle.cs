@@ -109,6 +109,10 @@ namespace StandaloneWindowTitleChanger
         public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        internal const int ERROR_SUCCESS = 0;
+        internal const int ERROR_INVALID_PARAMETER = 87;
+        internal const int ERROR_INVALID_WINDOW_HANDLE = 1400;
     }
 
     /// <summary>
@@ -143,10 +147,16 @@ namespace StandaloneWindowTitleChanger
             var parameter = (EnumWindowsParameter) parameterObject;
             uint processId;
             WindowsApi.GetWindowThreadProcessId(hWnd, out processId);
-            //var getWindowThreadProcessIdError = Marshal.GetLastWin32Error();
+            var getWindowThreadProcessIdError = Marshal.GetLastWin32Error();
             if (parameter.ProcessId != processId)
             {
-                //Debug.LogException(new Exception("Failed to get window process id for HWND:" + hWnd, new Win32Exception(getWindowThreadProcessIdError)));
+                if (getWindowThreadProcessIdError != WindowsApi.ERROR_SUCCESS &&
+                    getWindowThreadProcessIdError != WindowsApi.ERROR_INVALID_PARAMETER &&
+                    getWindowThreadProcessIdError != WindowsApi.ERROR_INVALID_WINDOW_HANDLE)
+                {
+                    // Treat the error as non fatal
+                    Debug.LogException(new Exception("Failed to get window process id for HWND:" + hWnd, new Win32Exception(getWindowThreadProcessIdError)));
+                }
                 return true;
             }
 
@@ -155,7 +165,13 @@ namespace StandaloneWindowTitleChanger
             var getClassNameError = Marshal.GetLastWin32Error();
             if (classNameLength == 0)
             {
-                Debug.LogException(new Exception("Failed to get window class name for HWND:" + hWnd, new Win32Exception(getClassNameError)));
+                if (getClassNameError != WindowsApi.ERROR_SUCCESS &&
+                    getClassNameError != WindowsApi.ERROR_INVALID_PARAMETER &&
+                    getClassNameError != WindowsApi.ERROR_INVALID_WINDOW_HANDLE)
+                {
+                    // Treat the error as non fatal
+                    Debug.LogException(new Exception("Failed to get window class name for HWND:" + hWnd, new Win32Exception(getClassNameError)));
+                }
                 return true;
             }
 
@@ -168,8 +184,13 @@ namespace StandaloneWindowTitleChanger
             var setWindowTextError = Marshal.GetLastWin32Error();
             if (!setWindowTextSuccess)
             {
-                parameter.InnerExceptionMessage = "Failed to change window title for HWND:" + hWnd;
-                parameter.InnerException = new Win32Exception(setWindowTextError);
+                if (setWindowTextError != WindowsApi.ERROR_INVALID_PARAMETER &&
+                    setWindowTextError != WindowsApi.ERROR_INVALID_WINDOW_HANDLE)
+                {
+                    // Propagate unexpected error to the caller
+                    parameter.InnerExceptionMessage = "Failed to change window title for HWND:" + hWnd;
+                    parameter.InnerException = new Win32Exception(setWindowTextError);
+                }
                 return true;
             }
 
