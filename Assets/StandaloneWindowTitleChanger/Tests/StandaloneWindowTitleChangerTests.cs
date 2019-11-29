@@ -33,6 +33,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using AOT;
 
 #if UNITY_EDITOR
 using Native = StandaloneWindowTitleChanger.Tests.StandaloneWindowTitleTests.UnsupportedStandaloneWindowTitleTests;
@@ -66,6 +67,7 @@ namespace StandaloneWindowTitleChanger.Tests
                 internal int LastWin32Error;
             }
 
+            [MonoPInvokeCallback(typeof(WindowsApi.EnumWindowsProc))]
             private static bool EnumWindowsCallback(IntPtr hWnd, IntPtr parameterGCHandleIntPtr)
             {
                 var parameterGCHandle = GCHandle.FromIntPtr(parameterGCHandleIntPtr);
